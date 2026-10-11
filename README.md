@@ -233,7 +233,7 @@ The model is trained at build time, so the container starts instantly.
 
 ## ☁️ Deployment
 
-### Option A: everything on Render (recommended)
+### On Render 
 
 1. Push the repo to GitHub.
 2. Render → **New +** → **Web Service** → pick this repo.
@@ -241,13 +241,6 @@ The model is trained at build time, so the container starts instantly.
 4. **Create Web Service.** The first build takes a few minutes.
 
 > Free instances sleep when idle, so the first visit can take about 30 seconds. The UI shows a *"Waking the server"* message while it waits.
-
-### Option B: Render (API) + Vercel (frontend)
-
-1. Deploy the backend on Render as above.
-2. In `frontend/script.js`, set `CONFIG.API_BASE = "https://YOUR-SERVICE.onrender.com"`.
-3. Vercel → **New Project** → import the repo → **Root directory:** `frontend` → Deploy.
-4. Optional: in `backend/main.py`, replace `allow_origins=["*"]` with your Vercel domain.
 
 ---
 
