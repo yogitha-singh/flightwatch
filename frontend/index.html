@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>FLIGHTWATCH · Know before you board.</title>
+  <meta name="description" content="FLIGHTWATCH predicts flight delay risk for any airport pair using a Random Forest model and live weather. Know before you board.">
+  <meta name="theme-color" content="#06090f">
+  <meta property="og:title" content="FLIGHTWATCH · Know before you board.">
+  <meta property="og:description" content="ML-powered flight delay prediction with live weather and historical route patterns.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='6' fill='%2306090f'/%3E%3Ccircle cx='16' cy='16' r='11' fill='none' stroke='%2300d4ff' stroke-width='1.5'/%3E%3Cpath d='M16 6v10l6 6' stroke='%2300d4ff' stroke-width='1.5' fill='none'/%3E%3Ccircle cx='16' cy='16' r='2' fill='%2300d4ff'/%3E%3C/svg%3E">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body data-view="landing">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ============================== HEADER ============================== -->
+  <header class="topbar">
+    <a class="brand" href="./" id="brandLink" aria-label="FLIGHTWATCH home">
+      <svg class="logo" viewBox="0 0 40 40" aria-hidden="true">
+        <defs>
+          <linearGradient id="sweepGrad" x1="0" y1="0" x2="1" y2="0">
+            <stop offset="0" stop-color="#00d4ff" stop-opacity="0"/>
+            <stop offset="1" stop-color="#00d4ff" stop-opacity=".55"/>
+          </linearGradient>
+        </defs>
+        <rect x="1" y="1" width="38" height="38" rx="6" fill="rgba(0,212,255,.06)" stroke="rgba(0,212,255,.45)"/>
+        <circle cx="20" cy="20" r="14" fill="none" stroke="rgba(0,212,255,.35)"/>
+        <circle cx="20" cy="20" r="8" fill="none" stroke="rgba(0,212,255,.22)"/>
+        <g class="logo-sweep"><path d="M20 20 L34 20 A14 14 0 0 0 27 7.9 Z" fill="url(#sweepGrad)"/></g>
+        <path class="logo-plane" transform="translate(9 9) scale(.92)" fill="#e8f4f8"
+              d="M21 16v-2l-8-5V3.5a1.5 1.5 0 0 0-3 0V9l-8 5v2l8-2.5V19l-2 1.5V22l3.5-1 3.5 1v-1.5L13 19v-5.5z"/>
+      </svg>
+      <span class="brand-text">
+        <span class="brand-name">FLIGHTWATCH</span>
+        <span class="brand-sep" aria-hidden="true">·</span>
+        <span class="brand-tag">Know before you board.</span>
+      </span>
+    </a>
+
+    <form class="search search--compact" id="headerSearch" autocomplete="off" novalidate aria-label="Search a route"></form>
+
+    <div class="topbar-right">
+      <button class="icon-btn" id="soundBtn" type="button" aria-pressed="false" title="Sound alert on high risk: off">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path class="snd-body" d="M4 9v6h4l5 4V5L8 9H4z"/><g class="snd-waves"><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/></g><path class="snd-off" d="M16 9l5 6M21 9l-5 6"/></svg>
+        <span class="sr-only">Toggle risk sound alert</span>
+      </button>
+      <div class="live-pill" id="livePill" data-state="idle" role="status" aria-live="polite">
+        <span class="dot" aria-hidden="true"></span><span id="liveText">LIVE DATA</span>
+      </div>
+      <div class="clock" id="clock" aria-label="Current UTC time">UTC --:--:--</div>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- ============================== LANDING ============================== -->
+    <section class="hero" id="landing" aria-labelledby="heroTitle">
+      <canvas id="radar" aria-hidden="true"></canvas>
+      <div class="hero-inner">
+        <h1 class="hero-title" id="heroTitle">FLIGHTWATCH</h1>
+        <p class="hero-tag">Know before you board.</p>
+        <p class="hero-sub">Search any airport pair. A Random Forest trained on 10,000 flights scores delay risk from departure time, airline, airport congestion and weather at both ends.</p>
+
+        <form class="search search--hero panel" id="heroSearch" autocomplete="off" novalidate aria-label="Search a route"></form>
+
+        <div class="chip-row" id="quickChips" aria-label="Popular routes"></div>
+        <div class="chip-row chip-row--recent" id="recents" hidden aria-label="Recent searches"></div>
+
+        <div class="hero-meta mono" id="heroMeta" aria-live="polite"></div>
+        <div class="banner" id="heroError" role="alert" hidden></div>
+      </div>
+      <div class="hero-runway" aria-hidden="true"></div>
+    </section>
+
+    <!-- ============================== RESULTS ============================== -->
+    <section class="results" id="results" hidden aria-label="Route analysis">
+
+      <!-- Route header -->
+      <div class="panel route-head" id="routeHead">
+        <div class="route-main">
+          <div class="route-codes" aria-live="polite">
+            <span class="route-code" id="rhFrom">---</span>
+            <svg class="route-arrow" viewBox="0 0 60 24" aria-hidden="true"><path d="M2 12h50M44 4l10 8-10 8" /></svg>
+            <span class="route-code" id="rhTo">---</span>
+          </div>
+          <div class="route-names" id="rhNames">&nbsp;</div>
+          <div class="route-facts mono" id="rhFacts"></div>
+        </div>
+        <div class="route-side">
+          <div class="pill-row" id="airlinePills" role="group" aria-label="Filter by airline"></div>
+          <div class="route-actions">
+            <button type="button" class="btn-ghost" id="compareBtn">Compare airlines</button>
+            <button type="button" class="btn-ghost" id="shareBtn">Share route</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="banner" id="resultsError" role="alert" hidden></div>
+
+      <div class="grid" id="grid">
+        <!-- ============ LEFT COLUMN ============ -->
+        <div class="col col-left">
+
+          <!-- Gauge -->
+          <article class="panel scan gauge-panel is-loading" id="gaugePanel" data-level="low" aria-labelledby="gaugeTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Scanning route…</span></div>
+            <h2 class="panel-title" id="gaugeTitle">Delay risk</h2>
+            <div class="gauge-layout">
+              <figure class="gauge" aria-live="polite">
+                <svg viewBox="0 0 260 260" id="gaugeSvg" role="img" aria-label="Delay probability gauge">
+                  <g id="gaugeTicks"></g>
+                  <g id="gaugeSegs"></g>
+                  <circle id="gaugeFill" class="gauge-fill" cx="130" cy="130" r="104" transform="rotate(135 130 130)"/>
+                  <g id="gaugeNeedle" class="gauge-needle">
+                    <line x1="130" y1="130" x2="130" y2="40"/>
+                    <circle cx="130" cy="130" r="6"/>
+                  </g>
+                </svg>
+                <div class="gauge-center">
+                  <div class="gauge-value num"><span id="gaugeNum">0</span><span class="gauge-unit">%</span></div>
+                  <div class="gauge-label mono">Delay probability</div>
+                  <div class="pill" id="gaugeStatus">ON TIME</div>
+                </div>
+                <div class="gauge-scale mono" aria-hidden="true"><span>0</span><span>100</span></div>
+              </figure>
+
+              <div class="gauge-side">
+                <div class="selected-flight mono" id="selFlight">—</div>
+                <div class="expected">
+                  <div class="mono lbl">Expected delay</div>
+                  <div class="expected-val num"><span id="expNum">0</span><span class="expected-unit mono"> min</span></div>
+                </div>
+                <div class="confidence">
+                  <div class="conf-head mono"><span>Model confidence</span><span id="confNum">0%</span></div>
+                  <div class="bar"><i id="confBar"></i></div>
+                </div>
+                <div class="route-avg mono" id="routeAvg"></div>
+                <div class="legend mono" aria-hidden="true">
+                  <span class="lg lg-low">&lt;30%</span><span class="lg lg-medium">30–60%</span><span class="lg lg-high">&gt;60%</span>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <!-- Risk factors -->
+          <article class="panel scan is-loading" id="factorsPanel" aria-labelledby="factorsTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Reading risk factors…</span></div>
+            <h2 class="panel-title" id="factorsTitle">Top risk factors</h2>
+            <ul class="factors" id="factorsList"></ul>
+          </article>
+
+          <!-- Flights -->
+          <article class="panel is-loading" id="flightsPanel" aria-labelledby="flightsTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Pulling departures…</span></div>
+            <div class="panel-head">
+              <h2 class="panel-title" id="flightsTitle">Upcoming flights</h2>
+              <span class="tag mono" title="Timetable is simulated; plug a real schedule API into /api/flights">Simulated schedule</span>
+            </div>
+            <ul class="flights" id="flightsList"></ul>
+            <p class="hint mono">Select a flight to update the gauge. Use ↻ to flip a card for details.</p>
+          </article>
+
+          <!-- Weather -->
+          <div class="wx-grid" id="wxGrid">
+            <article class="panel scan wx-card is-loading" id="wxOrigin" aria-label="Origin weather">
+              <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Reading METAR…</span></div>
+            </article>
+            <article class="panel scan wx-card is-loading" id="wxDest" aria-label="Destination weather">
+              <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Reading METAR…</span></div>
+            </article>
+          </div>
+        </div>
+
+        <!-- ============ RIGHT COLUMN ============ -->
+        <div class="col col-right">
+
+          <!-- KPIs -->
+          <article class="panel scan is-loading" id="kpiPanel" aria-labelledby="kpiTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Loading history…</span></div>
+            <h2 class="panel-title" id="kpiTitle">Route history</h2>
+            <div class="kpis" id="kpis"></div>
+          </article>
+
+          <!-- Charts -->
+          <article class="panel is-loading" id="chartPanel" aria-labelledby="chartTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Plotting delay patterns…</span></div>
+            <div class="panel-head">
+              <h2 class="panel-title" id="chartTitle">Delay patterns</h2>
+              <div class="tabs" role="tablist" aria-label="Chart view">
+                <button role="tab" id="tabHour" aria-selected="true" aria-controls="chartWrap" data-tab="hour" type="button">By hour</button>
+                <button role="tab" id="tabDay" aria-selected="false" aria-controls="chartWrap" data-tab="day" type="button" tabindex="-1">By day</button>
+              </div>
+            </div>
+            <div class="chart-wrap" id="chartWrap" role="tabpanel">
+              <canvas id="delayChart" aria-label="Delay rate bar chart" role="img"></canvas>
+            </div>
+            <div class="chart-legend mono" aria-hidden="true">
+              <span><i class="sw sw-high"></i>Worst</span><span><i class="sw sw-low"></i>Best</span><span><i class="sw sw-base"></i>Typical</span>
+              <span class="chart-note" id="chartNote">% of flights delayed &gt; 15 min</span>
+            </div>
+          </article>
+
+          <!-- Best time -->
+          <article class="panel scan is-loading" id="bestPanel" aria-labelledby="bestTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Finding the best slot…</span></div>
+            <h2 class="panel-title" id="bestTitle">Best time to fly</h2>
+            <div class="best" id="bestBody"></div>
+          </article>
+
+          <!-- Airline comparison -->
+          <article class="panel is-loading" id="airlinePanel" aria-labelledby="airlineTitle">
+            <div class="loader" aria-hidden="true"><span class="radar-spin"></span><span class="loader-text">Ranking carriers…</span></div>
+            <h2 class="panel-title" id="airlineTitle">Airline comparison</h2>
+            <div class="table-wrap">
+              <table class="airline-table" id="airlineTable">
+                <thead><tr><th scope="col">Airline</th><th scope="col">On-time</th><th scope="col" class="r">Avg delay</th><th scope="col" class="r">Flights tracked</th></tr></thead>
+                <tbody id="airlineBody"></tbody>
+              </table>
+            </div>
+          </article>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <!-- ============================== FOOTER ============================== -->
+  <footer class="footer">
+    <div class="runway-line" aria-hidden="true"></div>
+    <p class="mono">Data: Open-Meteo (weather) · ML: RandomForest · FLIGHTWATCH v1.0</p>
+    <p class="mono footer-model" id="footModel"></p>
+  </footer>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <noscript><div class="banner" style="margin:24px">FLIGHTWATCH needs JavaScript enabled to run.</div></noscript>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js" defer></script>
+  <script src="script.js" defer></script>
+</body>
+</html>

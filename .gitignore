@@ -1,0 +1,26 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+env/
+.pytest_cache/
+.mypy_cache/
+*.egg-info/
+
+# Generated ML artefact (auto-trained on first start)
+backend/model.pkl
+*.pkl
+
+# Node / Vercel
+node_modules/
+.vercel/
+npm-debug.log*
+
+# Env / OS / IDE
+.env
+.env.*
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
