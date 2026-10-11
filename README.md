@@ -11,8 +11,6 @@ Pick any airport pair. Get a delay probability, the reasons behind it, live weat
 
 [![Live Demo](https://img.shields.io/badge/LIVE_DEMO-Open_FLIGHTWATCH-00d97e?style=for-the-badge&labelColor=0a0f18)](https://flightwatch-ke7m.onrender.com)
 
-<sub>Hosted on a free plan: if it hasn't been visited recently, the first load can take about a minute to wake up.</sub>
-
 <br>
 
 ![Python](https://img.shields.io/badge/Python-3.11+-00d4ff?style=for-the-badge&logo=python&logoColor=white&labelColor=0a0f18)
