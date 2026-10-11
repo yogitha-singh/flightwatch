@@ -9,7 +9,9 @@
 **ML-powered flight delay prediction with a mission-control interface.**
 Pick any airport pair. Get a delay probability, the reasons behind it, live weather at both ends, and how the route has behaved historically.
 
-**View Live:**  https://flightwatch-ke7m.onrender.com
+[![Live Demo](https://img.shields.io/badge/LIVE_DEMO-Open_FLIGHTWATCH-00d97e?style=for-the-badge&labelColor=0a0f18)](https://flightwatch-ke7m.onrender.com)
+
+<sub>Hosted on a free plan: if it hasn't been visited recently, the first load can take about a minute to wake up.</sub>
 
 <br>
 
