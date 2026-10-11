@@ -1,144 +1,343 @@
-# FLIGHTWATCH
+<div align="center">
+
+<br>
+
+# ✈ F L I G H T W A T C H
 
 ### *Know before you board.*
 
-ML-powered flight delay predictor with a mission-control UI. Pick any airport pair (DEL→BOM, JFK→LAX, LHR→DXB…) and FLIGHTWATCH scores the delay risk of upcoming departures with a Random Forest, layers in weather at both ends, and shows how the route and each airline have historically behaved.
+**ML-powered flight delay prediction with a mission-control interface.**
+Pick any airport pair. Get a delay probability, the reasons behind it, live weather at both ends, and how the route has behaved historically.
 
-> **Screenshots**
-> `docs/landing.png` · `docs/results.png` · `docs/mobile.png` *(add yours here)*
+<br>
+
+![Python](https://img.shields.io/badge/Python-3.11+-00d4ff?style=for-the-badge&logo=python&logoColor=white&labelColor=0a0f18)
+![FastAPI](https://img.shields.io/badge/FastAPI-REST_API-00d97e?style=for-the-badge&logo=fastapi&logoColor=white&labelColor=0a0f18)
+![scikit-learn](https://img.shields.io/badge/scikit--learn-Random_Forest-f5a524?style=for-the-badge&logo=scikitlearn&logoColor=white&labelColor=0a0f18)
+![Open-Meteo](https://img.shields.io/badge/Weather-Open--Meteo-00d4ff?style=for-the-badge&labelColor=0a0f18)
+![Vanilla JS](https://img.shields.io/badge/Frontend-Vanilla_JS-f5a524?style=for-the-badge&logo=javascript&logoColor=white&labelColor=0a0f18)
+
+[Screenshots](#-screenshots) · [Features](#-features) · [How the ML works](#-how-the-ml-works) · [Run it](#-run-locally) · [Deploy](#-deployment) · [API](#-api-reference)
+
+<br>
+
+</div>
 
 ---
 
-## Tech stack
+## 📸 Screenshots
 
-| Layer | Tools |
-|---|---|
-| Backend | Python 3.11+, FastAPI, uvicorn, Pydantic v2 |
-| ML | scikit-learn (RandomForestClassifier + RandomForestRegressor), pandas, numpy, joblib |
-| Weather | [Open-Meteo](https://open-meteo.com) (free, no API key) |
-| Frontend | HTML5, CSS3 (custom properties, glassmorphism), vanilla ES6+, Chart.js (CDN) |
-| Fonts | Inter, JetBrains Mono, Space Grotesk |
-| Deploy | Render (API + static in one service) or Render + Vercel; Dockerfile included |
+<div align="center">
 
-## Features
+**Radar landing page** — all 40 airports plotted on a real map projection, lighting up as the sweep passes
 
-- **Route search** with airport autocomplete (40 airports), swap button, quick chips and recent searches
-- **Delay-risk gauge**: animated needle, green < 30 % / amber 30–60 % / red > 60 %
-- **Expected delay** in minutes plus a model-confidence bar
-- **Top 3 risk factors** per flight (e.g. "Evening departure (peak hour)", "Weather at DEL: Fog")
-- **Upcoming flights** with predicted delay badge, status (ON TIME / AT RISK / DELAYED), click-to-inspect and a flip animation for details
-- **Weather cards** for departure and arrival, scored at the *scheduled hour* of each flight
-- **Historical patterns**: delay by hour and by weekday (worst bar red, best bar green)
-- **Airline comparison** table with a "Safest bet" badge and a filter by carrier
-- **Best time to fly** panel
-- **Radar landing page** where the 40 airports are plotted on a real azimuthal projection and light up as the sweep passes
-- Shareable URLs (`?from=DEL&to=BOM`), optional sound alert on elevated risk (off by default), UTC clock, live/estimated data indicator, loading + error states, keyboard-accessible, responsive, reduced-motion aware
+<img src="Screenshots/01-landing.png" alt="FLIGHTWATCH landing page with radar sweep" width="92%">
 
-## ML pipeline
+<br><br>
 
+**Delay gauge, route history and risk factors**
+
+<img src="Screenshots/02-results-gauge.png" alt="Delay probability gauge and route history" width="92%">
+
+<br><br>
+
+<table>
+  <tr>
+    <td width="50%" align="center"><b>Risk factors and hourly delay pattern</b><br><br><img src="Screenshots/03-risk-factors-charts.png" alt="Risk factors and delay by hour chart"></td>
+    <td width="50%" align="center"><b>Flights and best time to fly</b><br><br><img src="Screenshots/04-flights-best-time.png" alt="Upcoming flights and best time to fly"></td>
+  </tr>
+</table>
+
+<br>
+
+**Live weather at both airports and airline comparison**
+
+<img src="Screenshots/05-weather-airlines.png" alt="Weather cards and airline comparison table" width="92%">
+
+</div>
+
+---
+
+## ✨ Features
+
+<table>
+  <tr>
+    <td width="33%" valign="top">
+      <h4>🎯 Delay-risk gauge</h4>
+      Animated needle and fill. <b>Green</b> under 30%, <b>amber</b> 30–60%, <b>red</b> over 60%, with expected delay in minutes and a model-confidence bar.
+    </td>
+    <td width="33%" valign="top">
+      <h4>🔍 Explainable factors</h4>
+      Every flight shows its top 3 risk drivers, such as <i>"Evening departure (peak hour)"</i> or <i>"Weather at DEL: Fog"</i>, with the percentage-point impact of each.
+    </td>
+    <td width="33%" valign="top">
+      <h4>🛫 Upcoming flights</h4>
+      Eight departures per route with status (ON TIME / AT RISK / DELAYED). Click a flight to update the gauge, or flip the card for weather and timing details.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>🌦 Weather at both ends</h4>
+      Open-Meteo data scored at each flight's <b>scheduled</b> departure and arrival hour. Falls back to a climatology estimate if the API is unreachable.
+    </td>
+    <td valign="top">
+      <h4>📊 Historical patterns</h4>
+      Delay rate by hour and by weekday. Worst bar in red, best in green, plus a <b>Best time to fly</b> panel.
+    </td>
+    <td valign="top">
+      <h4>🏆 Airline comparison</h4>
+      On-time %, average delay and flights tracked per carrier, with a <b>Safest bet</b> badge. Filter the flight list by airline.
+    </td>
+  </tr>
+  <tr>
+    <td valign="top">
+      <h4>📡 Radar landing</h4>
+      Airports plotted on an azimuthal projection. Hover a suggestion and its blip lights up; pick two and the route is drawn.
+    </td>
+    <td valign="top">
+      <h4>🔗 Shareable routes</h4>
+      Every analysis has a URL like <code>?from=DEL&amp;to=BOM</code>. One click copies it.
+    </td>
+    <td valign="top">
+      <h4>🎛 Details that matter</h4>
+      Live UTC clock, data-source indicator, optional sound alert on elevated risk (off by default), keyboard navigation, responsive layout, reduced-motion support.
+    </td>
+  </tr>
+</table>
+
+---
+
+## 🛠 Tech stack
+
+| Layer | Technology |
+|:--|:--|
+| **Backend** | Python 3.11+, FastAPI, uvicorn, Pydantic v2 |
+| **Machine learning** | scikit-learn (`RandomForestClassifier` + `RandomForestRegressor`), pandas, numpy, joblib |
+| **Weather** | [Open-Meteo](https://open-meteo.com) forecast API (free, no key) |
+| **Frontend** | HTML5, CSS3 (custom properties, glassmorphism, HUD styling), vanilla ES6+, Chart.js |
+| **Typography** | JetBrains Mono (labels and data), Space Grotesk (big numbers), Inter (body) |
+| **Deployment** | Render (single service) or Render + Vercel · Dockerfile included |
+
+---
+
+## 🧠 How the ML works
+
+```mermaid
+flowchart LR
+    A[Synthetic flight simulator<br/>10,000 rows] --> B[80/20 stratified split]
+    B --> C[RandomForestClassifier<br/>delayed > 15 min]
+    B --> D[RandomForestRegressor<br/>delay minutes]
+    C --> E[(model.pkl<br/>joblib)]
+    D --> E
+    F[Open-Meteo<br/>live weather] --> G[Weather score 0–1]
+    G --> H{Prediction}
+    E --> H
+    H --> I[Probability · expected minutes<br/>confidence · risk factors]
 ```
-data.generate_flights(10 000)  ->  80/20 stratified split  ->  RandomForestClassifier  (delayed > 15 min)
-                                                           ->  RandomForestRegressor   (delay minutes)
-                                ->  metrics + importances  ->  model.pkl (joblib)
-```
 
-**Features (11):** hour of day, day of week, month, airline id, origin id, destination id, distance (km), origin weather score, destination weather score, is_weekend, is_holiday.
+### Features (11)
 
-**Synthetic data** (`backend/data.py`) is built from a hidden ground-truth log-odds model so the patterns are learnable but noisy:
+| Group | Inputs |
+|:--|:--|
+| **Time** | hour of day · day of week · month · is weekend · is holiday |
+| **Route** | origin airport ID · destination airport ID · distance (km) |
+| **Carrier** | airline ID |
+| **Weather** | origin weather score · destination weather score (0–1) |
+
+### What the simulated history encodes
 
 | Effect | Behaviour |
-|---|---|
-| Time of day | peaks at 07–09h and 17–20h, knock-on delays late evening, calm early morning |
-| Weekday | Friday and Sunday worst, Tuesday / Wednesday best |
-| Season | Dec–Feb worst, Jul–Aug elevated, plus holiday windows |
-| Weather | wind, visibility, precipitation, icing / heat → 0–1 score; origin weighs more than destination |
-| Distance | longer sectors slightly worse |
-| Airline & airport | hidden punctuality / congestion effects the model must learn from encoded IDs |
+|:--|:--|
+| ⏰ Time of day | Peaks at 07–09h and 17–20h, knock-on delays late evening, quiet early mornings |
+| 📅 Weekday | Friday and Sunday worst, Tuesday and Wednesday best |
+| ❄️ Season | Dec–Feb worst, Jul–Aug elevated, plus holiday windows |
+| 🌧 Weather | Wind, visibility, precipitation and icing or heat combine into a 0–1 score; origin counts more than destination |
+| 📏 Distance | Longer sectors slightly worse |
+| 🏢 Airline and airport | Hidden punctuality and congestion effects the model must learn from encoded IDs |
 
-**Weather score.** The same function (`compute_weather_score`) turns raw weather into a 0–1 severity score for training data *and* for live Open-Meteo readings, so the model sees identical semantics at inference.
+### Results (held-out test set, 2,000 flights)
 
-**Evaluation (seed 42, 2 000 held-out flights):** ROC-AUC ≈ 0.72, accuracy ≈ 79 % (majority baseline 78 %), MAE ≈ 23 min. The ceiling is deliberately modest: delays are noisy, and the model is honest about it. `/api/model-info` exposes all metrics and feature importances.
+| Metric | Value |
+|:--|:--|
+| ROC-AUC | **0.72** |
+| Accuracy | **79%** (majority-class baseline: 78%) |
+| Delay-minutes MAE | **≈ 23 min** |
+| Top drivers | Origin weather 35% · Destination weather 12% · Distance 9% |
 
-**Confidence** is the agreement between the forest's individual trees: low spread = high confidence.
+The ceiling is deliberately modest: delays are noisy, and the model reports its uncertainty instead of hiding it.
 
-**Risk factors** use counterfactual attribution: for each feature group the flight's value is swapped with values from a background sample, and the change in predicted probability is that factor's contribution.
+### How a prediction is explained
 
-**Route stats** come from a larger deterministic simulated history per route (3 000 flights), so charts are stable between requests.
+- **Confidence** is how closely the individual trees of the forest agree. Low spread means high confidence.
+- **Risk factors** use counterfactual attribution. For each feature group, the flight's value is swapped with values from a background sample, and the change in predicted probability is that factor's contribution.
+- **Weather score** is a single function used for both the training data and live Open-Meteo readings, so the model sees identical semantics at inference time.
 
-### Honest limits (read before showing this to a recruiter)
+---
 
-- The **training data and route history are synthetic**. Patterns are realistic by construction, not measured.
-- The **flight timetable is simulated** (deterministic per route). Weather is real when Open-Meteo is reachable; otherwise a climatology estimate is used and the header shows **WX ESTIMATED**.
-- To go real: replace `generate_flights()` with a loader for the [US BTS On-Time dataset](https://www.transtats.bts.gov/) (same columns), and swap `route_schedule()` for AviationStack / OpenSky / FlightAware.
+## ⚠️ Honest limitations
 
-## Run locally
+> **Read this before treating the numbers as real.**
+
+| | |
+|:--|:--|
+| 🧪 **Training data** | Synthetic. Patterns are realistic by construction, not measured from airlines. |
+| 🗓 **Flight timetable** | Simulated and deterministic per route. The UI labels it *Simulated schedule*. |
+| 🌤 **Weather** | Real when Open-Meteo is reachable. Otherwise a climatology estimate is used and the header shows **WX ESTIMATED**. |
+| 🔌 **Going real** | Replace `generate_flights()` in `data.py` with a loader for the [US BTS On-Time dataset](https://www.transtats.bts.gov/) (same columns), and swap `route_schedule()` for AviationStack, OpenSky or FlightAware. |
+
+---
+
+## 🚀 Run locally
+
+**Requirements:** Python 3.11 or 3.12.
 
 ```bash
-# 1. Backend (serves the frontend too)
 cd backend
-python -m venv .venv && source .venv/bin/activate      # Windows: .venv\Scripts\activate
-pip install -r requirements.txt
-uvicorn main:app --reload --port 8000
-# first start trains and saves model.pkl (~5 s)
 
-# 2. Open http://localhost:8000
+python -m venv .venv
+# Windows:      .venv\Scripts\activate
+# Mac / Linux:  source .venv/bin/activate
+
+pip install -r requirements.txt
+python -m uvicorn main:app --reload --port 8000
 ```
 
-Prefer a separate static server for the frontend? Run `python -m http.server 5500` inside `frontend/` and open `http://localhost:5500`. The frontend auto-targets `http://localhost:8000` when served from another localhost port.
+The first start trains the model (about 5 seconds) and saves `model.pkl`. When you see `Model ready`, open **http://localhost:8000**. The same server serves the frontend.
 
-Docker: `docker build -t flightwatch . && docker run -p 8000:8000 flightwatch`
+<details>
+<summary><b>🐳 Run with Docker instead</b></summary>
 
-## Deployment
+```bash
+docker build -t flightwatch .
+docker run -p 8000:8000 flightwatch
+```
 
-### Option A: everything on Render (simplest)
+The model is trained at build time, so the container starts instantly.
+</details>
+
+<details>
+<summary><b>🧯 Troubleshooting</b></summary>
+
+| Problem | Fix |
+|:--|:--|
+| `pip install` fails on numpy or scikit-learn | Use Python 3.11 or 3.12. Create the venv with `py -3.11 -m venv .venv`. |
+| `uvicorn` not recognised | Activate the venv, or run `python -m uvicorn main:app --reload --port 8000`. |
+| Page says *API unreachable* | The backend isn't running or is on another port. |
+| Header says **WX ESTIMATED** | Open-Meteo couldn't be reached. It switches back to **LIVE DATA** when it can. |
+| Charts are blank | Chart.js loads from a CDN, so you need to be online. |
+</details>
+
+---
+
+## ☁️ Deployment
+
+### Option A: everything on Render (recommended)
 
 1. Push the repo to GitHub.
-2. Render → **New → Web Service** → connect the repo.
-3. **Root directory:** `backend` · **Runtime:** Python 3 (set env `PYTHON_VERSION=3.11.9`)
-4. **Build command:** `pip install -r requirements.txt && python model.py`
-5. **Start command:** `uvicorn main:app --host 0.0.0.0 --port $PORT`
+2. Render → **New +** → **Web Service** → pick this repo.
+3. **Runtime:** `Docker` · **Root directory:** leave empty · **Instance:** Free.
+4. **Create Web Service.** The first build takes a few minutes.
 
-FastAPI serves `../frontend` automatically when it exists, so no extra config. If your Render root directory is `backend` and the frontend folder is not found, use the Docker option (Render → Runtime: Docker, root = repo root).
+> Free instances sleep when idle, so the first visit can take about 30 seconds. The UI shows a *"Waking the server"* message while it waits.
 
 ### Option B: Render (API) + Vercel (frontend)
 
 1. Deploy the backend on Render as above.
-2. In `frontend/script.js` set `CONFIG.API_BASE = "https://YOUR-SERVICE.onrender.com"`.
-3. Vercel → **New Project** → import the repo → **Root directory:** `frontend` → framework preset *Other* → Deploy.
-4. Optional hardening: in `backend/main.py` replace `allow_origins=["*"]` with your Vercel domain.
+2. In `frontend/script.js`, set `CONFIG.API_BASE = "https://YOUR-SERVICE.onrender.com"`.
+3. Vercel → **New Project** → import the repo → **Root directory:** `frontend` → Deploy.
+4. Optional: in `backend/main.py`, replace `allow_origins=["*"]` with your Vercel domain.
 
-> Free Render instances sleep when idle; the first request can take ~30 s. The UI shows a "waking the server" message while it waits.
+---
 
-## API
+## 🔌 API reference
 
-| Method | Endpoint | Description |
-|---|---|---|
-| GET | `/api/airports` | 40 airports: code, name, city, country, lat, lon, timezone |
-| GET | `/api/flights?from=DEL&to=BOM` | 8 upcoming departures with ML delay probability, expected minutes, confidence, status, risk factors; current weather at both airports |
-| GET | `/api/predict?from=&to=&airline=&hour=&dayOfWeek=` | Single prediction + top risk factors (`dayOfWeek` 0 = Mon … 6 = Sun; optional `date=YYYY-MM-DD`) |
-| GET | `/api/route-stats?from=&to=` | Avg delay, on-time %, worst/best day & hour, by-hour and by-day series, airline comparison |
-| GET | `/api/weather?iata=DEL` | Temperature, wind, visibility, precipitation, delay-risk contribution |
-| GET | `/api/model-info` | Training metrics + feature importance |
-| GET | `/api/health` | Liveness, model status, weather API status |
+Interactive docs are served at `/docs`. Errors are JSON, e.g. `{"detail": "Airport 'XXX' is not in the FLIGHTWATCH directory."}`.
 
-Interactive docs at `/docs`. Errors are JSON: `{"detail": "Airport 'XXX' is not in the FLIGHTWATCH directory."}`.
+| Method | Endpoint | Returns |
+|:--:|:--|:--|
+| `GET` | `/api/airports` | 40 airports: code, name, city, country, lat, lon, timezone |
+| `GET` | `/api/flights?from=DEL&to=BOM` | 8 upcoming departures with delay probability, expected minutes, confidence, status and risk factors; current weather at both airports |
+| `GET` | `/api/predict?from=&to=&airline=&hour=&dayOfWeek=` | Single-flight prediction with top risk factors. `dayOfWeek`: 0 = Mon … 6 = Sun. Optional `date=YYYY-MM-DD` |
+| `GET` | `/api/route-stats?from=&to=` | Average delay, on-time %, worst and best day or hour, hourly and daily series, airline comparison |
+| `GET` | `/api/weather?iata=DEL` | Temperature, wind, visibility, precipitation and delay-risk contribution |
+| `GET` | `/api/model-info` | Training metrics and feature importance |
+| `GET` | `/api/health` | Liveness, model status, weather API status |
 
-## Project layout
+<details>
+<summary><b>Example request</b></summary>
+
+```bash
+curl "http://localhost:8000/api/predict?from=JFK&to=LAX&airline=DL&hour=18&dayOfWeek=4"
+```
+
+```json
+{
+  "route": "JFK-LAX",
+  "airline": "DL",
+  "delay_probability": 0.1392,
+  "predicted_delay_minutes": 6.9,
+  "confidence": 0.792,
+  "status": "ON TIME",
+  "risk_factors": [
+    { "factor": "Evening departure (peak hour, 18:00)", "direction": "increases", "impact_pts": 4.1 },
+    { "factor": "JFK departure congestion", "direction": "increases", "impact_pts": 1.7 }
+  ]
+}
+```
+</details>
+
+---
+
+## 🗂 Project structure
 
 ```
 flightwatch/
-├── backend/   main.py · model.py · data.py · weather.py · requirements.txt · README.md
-├── frontend/  index.html · style.css · script.js
+├── backend/
+│   ├── main.py            FastAPI app, schemas, endpoints
+│   ├── model.py           training, prediction, confidence, risk factors
+│   ├── data.py            airports, airlines, weather scoring, data simulator
+│   ├── weather.py         Open-Meteo client with cache and fallback
+│   ├── requirements.txt
+│   └── README.md
+├── frontend/
+│   ├── index.html
+│   ├── style.css
+│   └── script.js
+├── Screenshots/
 ├── Dockerfile
 ├── README.md
 └── .gitignore
 ```
 
-## Credits
+---
 
-- Weather data: [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
-- ML: [scikit-learn](https://scikit-learn.org)
-- API: [FastAPI](https://fastapi.tiangolo.com) · charts: [Chart.js](https://www.chartjs.org)
-- Typefaces: Inter, JetBrains Mono, Space Grotesk (Google Fonts)
+## 🎨 Design system
 
-Built as Day 4 of a portfolio series. FLIGHTWATCH v1.0
+| Token | Colour | Used for |
+|:--|:--:|:--|
+| `--bg` | ![#06090f](https://img.shields.io/badge/-%2306090f-06090f?style=flat-square) | Background |
+| `--primary` | ![#00d4ff](https://img.shields.io/badge/-%2300d4ff-00d4ff?style=flat-square) | Active elements, data |
+| `--success` | ![#00d97e](https://img.shields.io/badge/-%2300d97e-00d97e?style=flat-square) | On time, low risk |
+| `--warning` | ![#f5a524](https://img.shields.io/badge/-%23f5a524-f5a524?style=flat-square) | Medium risk |
+| `--danger` | ![#ff3b3b](https://img.shields.io/badge/-%23ff3b3b-ff3b3b?style=flat-square) | Delayed, high risk |
+
+Green, amber and red are reserved for risk levels only.
+
+---
+
+## 🙏 Credits
+
+- Weather data by [Open-Meteo](https://open-meteo.com) (CC BY 4.0)
+- Machine learning with [scikit-learn](https://scikit-learn.org)
+- API built on [FastAPI](https://fastapi.tiangolo.com) · charts by [Chart.js](https://www.chartjs.org)
+- Typefaces: Inter, JetBrains Mono, Space Grotesk via Google Fonts
+
+<br>
+
+<div align="center">
+
+**FLIGHTWATCH v1.0** · Built by [Yogitha Singh](https://github.com/yogitha-singh) 
+
+*Know before you board.*
+
+</div>
